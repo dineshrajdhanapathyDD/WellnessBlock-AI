@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WellnessBlock AI</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f4f8; color: #1a202c; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+    
+    header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 16px 24px; border-radius: 12px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
+    header h1 { font-size: 1.5rem; }
+    .user-info { display: flex; align-items: center; gap: 12px; }
+    .user-info span { font-size: 0.9rem; opacity: 0.9; }
+    
+    nav { display: flex; gap: 8px; margin-bottom: 24px; }
+    nav button { padding: 10px 20px; border: 2px solid #667eea; background: white; color: #667eea; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+    nav button.active, nav button:hover { background: #667eea; color: white; }
+    
+    .card { background: white; border-radius: 12px; padding: 24px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .card h2 { margin-bottom: 16px; color: #2d3748; font-size: 1.2rem; }
+    
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    label { display: block; font-size: 0.85rem; color: #4a5568; margin-bottom: 4px; font-weight: 500; }
+    input, select { width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem; }
+    
+    .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.2s; }
+    .btn-primary { background: #667eea; color: white; }
+    .btn-primary:hover { background: #5a6fd6; }
+    .btn-secondary { background: #edf2f7; color: #4a5568; }
+    .btn-secondary:hover { background: #e2e8f0; }
+    
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+    th { background: #f7fafc; color: #4a5568; font-weight: 600; }
+    
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .stat-card { background: #f7fafc; border-radius: 8px; padding: 16px; text-align: center; }
+    .stat-value { font-size: 1.5rem; font-weight: 700; color: #667eea; }
+    .stat-label { font-size: 0.8rem; color: #718096; margin-top: 4px; }
+    
+    .login-container { max-width: 400px; margin: 100px auto; }
+    .login-container .card { text-align: center; }
+    .login-form { text-align: left; }
+    .login-form input { margin-bottom: 12px; }
+    
+    .insight-box { background: #f0fff4; border: 1px solid #c6f6d5; border-radius: 8px; padding: 16px; margin-top: 12px; }
+    .insight-box p { line-height: 1.6; }
+    .disclaimer { font-size: 0.8rem; color: #718096; margin-top: 12px; font-style: italic; }
+    
+    .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 12px; }
+    .alert-error { background: #fed7d7; color: #742a2a; }
+    .alert-success { background: #f0fff4; color: #22543d; }
+    
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container" id="app">
+    <!-- Login -->
+    <div id="login-view" class="login-container">
+      <div class="card">
+        <h2>WellnessBlock AI</h2>
+        <p style="color: #718096; margin-bottom: 20px;">Sign in to your wellness dashboard</p>
+        <div class="login-form">
+          <label>Email</label>
+          <input type="email" id="login-email" placeholder="alice@example.com" value="alice@example.com">
+          <label>Password</label>
+          <input type="password" id="login-password" placeholder="password123" value="password123">
+          <div id="login-error" class="alert alert-error hidden"></div>
+          <button class="btn btn-primary" style="width: 100%; margin-top: 8px;" onclick="handleSignIn()">Sign In</button>
+        </div>
+        <p style="margin-top: 16px; font-size: 0.8rem; color: #a0aec0;">
+          Test: alice@example.com / password123 | bob@example.com / password123
+        </p>
+      </div>
+    </div>
+
+    <!-- App -->
+    <div id="app-view" class="hidden">
+      <header>
+        <h1>WellnessBlock AI</h1>
+        <div class="user-info">
+          <span id="current-user-display"></span>
+          <button class="btn btn-secondary" onclick="handleSignOut()">Sign Out</button>
+        </div>
+      </header>
+
+      <nav>
+        <button id="nav-dashboard" class="active" onclick="showPage('dashboard')">Dashboard</button>
+        <button id="nav-insight" onclick="showPage('insight')">AI Insight</button>
+      </nav>
+
+      <!-- Dashboard -->
+      <div id="page-dashboard">
+        <div class="card">
+          <h2>Weekly Averages</h2>
+          <div class="stats-grid" id="weekly-stats"></div>
+        </div>
+
+        <div class="card">
+          <h2>Add Wellness Record</h2>
+          <div class="form-grid">
+            <div><label>Date</label><input type="date" id="add-date"></div>
+            <div><label>Steps</label><input type="number" id="add-steps" placeholder="8000" min="0"></div>
+            <div><label>Hydration (L)</label><input type="number" id="add-hydration" placeholder="2.0" step="0.1" min="0"></div>
+            <div><label>Sleep (hours)</label><input type="number" id="add-sleep" placeholder="7.5" step="0.1" min="0" max="24"></div>
+            <div><label>Mood</label>
+              <select id="add-mood">
+                <option value="great">Great</option>
+                <option value="good" selected>Good</option>
+                <option value="okay">Okay</option>
+                <option value="bad">Bad</option>
+                <option value="terrible">Terrible</option>
+              </select>
+            </div>
+            <div><label>Notes</label><input type="text" id="add-notes" placeholder="Optional notes..."></div>
+          </div>
+          <button class="btn btn-primary" onclick="handleCreateRecord()">Add Record</button>
+          <div id="add-result" class="hidden" style="margin-top: 12px;"></div>
+        </div>
+
+        <div class="card">
+          <h2>Recent Records</h2>
+          <div style="overflow-x: auto;">
+            <table>
+              <thead><tr><th>Date</th><th>Steps</th><th>Hydration</th><th>Sleep</th><th>Mood</th><th>Notes</th></tr></thead>
+              <tbody id="records-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Insight -->
+      <div id="page-insight" class="hidden">
+        <div class="card">
+          <h2>AI Wellness Insight</h2>
+          <p style="color: #718096; margin-bottom: 16px;">Get personalized wellness observations based on your recorded data.</p>
+          <button class="btn btn-primary" onclick="handleGenerateInsight()">Generate Weekly Insight</button>
+          <div id="insight-result" class="hidden" style="margin-top: 16px;">
+            <div class="insight-box">
+              <p id="insight-text"></p>
+              <p class="disclaimer" id="insight-disclaimer"></p>
+            </div>
+            <div style="margin-top: 12px;">
+              <p style="font-size: 0.85rem; color: #718096;"><strong>Based on:</strong> <span id="insight-records-count"></span> records</p>
+              <div id="insight-stats" style="margin-top: 8px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentUser = null;
+    const API_BASE = '/api';
+
+    const api = {
+      async signIn(email, password) {
+        const res = await fetch(`${API_BASE}/auth/signin`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ email, password }) });
+        return res.json();
+      },
+      async signOut() {
+        const res = await fetch(`${API_BASE}/auth/signout`, { method: 'POST', credentials: 'include' });
+        return res.json();
+      },
+      async getCurrentUser() {
+        const res = await fetch(`${API_BASE}/auth/me`, { credentials: 'include' });
+        return res.json();
+      },
+      async createWellnessRecord(input) {
+        const res = await fetch(`${API_BASE}/wellness`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(input) });
+        if (!res.ok) { const e = await res.json(); throw new Error(e.error || `HTTP ${res.status}`); }
+        return res.json();
+      },
+      async listWellnessRecords() {
+        const res = await fetch(`${API_BASE}/wellness`, { credentials: 'include' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      },
+      async requestWellnessInsight(question) {
+        const res = await fetch(`${API_BASE}/insight`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ question }) });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      },
+    };
+
+    async function handleSignIn() {
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      const errorEl = document.getElementById('login-error');
+      const result = await api.signIn(email, password);
+      if (result.success) { currentUser = result.user; errorEl.classList.add('hidden'); showApp(); }
+      else { errorEl.textContent = result.error; errorEl.classList.remove('hidden'); }
+    }
+
+    async function handleSignOut() {
+      await api.signOut();
+      currentUser = null;
+      document.getElementById('app-view').classList.add('hidden');
+      document.getElementById('login-view').classList.remove('hidden');
+    }
+
+    function showPage(page) {
+      ['dashboard', 'insight'].forEach(p => {
+        document.getElementById(`page-${p}`).classList.toggle('hidden', p !== page);
+        document.getElementById(`nav-${p}`).classList.toggle('active', p === page);
+      });
+      if (page === 'dashboard') loadDashboard();
+    }
+
+    async function showApp() {
+      document.getElementById('login-view').classList.add('hidden');
+      document.getElementById('app-view').classList.remove('hidden');
+      document.getElementById('current-user-display').textContent = `${currentUser.name} (${currentUser.email})`;
+      document.getElementById('add-date').value = new Date().toISOString().split('T')[0];
+      loadDashboard();
+    }
+
+    async function loadDashboard() {
+      try {
+        const { records } = await api.listWellnessRecords();
+        renderRecordsTable(records);
+        renderWeeklyStats(records);
+      } catch (err) { console.error(err); }
+    }
+
+    function renderWeeklyStats(records) {
+      const el = document.getElementById('weekly-stats');
+      if (!records.length) { el.innerHTML = '<p style="color:#718096;">No records yet.</p>'; return; }
+      const r = records.slice(0, 7);
+      const avg = (arr, fn) => arr.reduce((s, x) => s + fn(x), 0) / arr.length;
+      el.innerHTML = `
+        <div class="stat-card"><div class="stat-value">${Math.round(avg(r, x=>x.steps)).toLocaleString()}</div><div class="stat-label">Avg Steps</div></div>
+        <div class="stat-card"><div class="stat-value">${avg(r, x=>x.hydrationLiters).toFixed(1)}L</div><div class="stat-label">Avg Hydration</div></div>
+        <div class="stat-card"><div class="stat-value">${avg(r, x=>x.sleepHours).toFixed(1)}h</div><div class="stat-label">Avg Sleep</div></div>
+        <div class="stat-card"><div class="stat-value">${r[0].mood}</div><div class="stat-label">Latest Mood</div></div>
+        <div class="stat-card"><div class="stat-value">${records.length}</div><div class="stat-label">Total Records</div></div>
+      `;
+    }
+
+    function renderRecordsTable(records) {
+      const tbody = document.getElementById('records-tbody');
+      if (!records.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#718096;">No records yet</td></tr>'; return; }
+      tbody.innerHTML = records.map(r => `<tr><td>${r.date}</td><td>${r.steps.toLocaleString()}</td><td>${r.hydrationLiters}L</td><td>${r.sleepHours}h</td><td>${r.mood}</td><td>${r.notes||'-'}</td></tr>`).join('');
+    }
+
+    async function handleCreateRecord() {
+      const resultEl = document.getElementById('add-result');
+      try {
+        const input = {
+          date: document.getElementById('add-date').value,
+          steps: parseInt(document.getElementById('add-steps').value) || 0,
+          hydrationLiters: parseFloat(document.getElementById('add-hydration').value) || 0,
+          sleepHours: parseFloat(document.getElementById('add-sleep').value) || 0,
+          mood: document.getElementById('add-mood').value,
+          notes: document.getElementById('add-notes').value || undefined,
+        };
+        await api.createWellnessRecord(input);
+        resultEl.className = 'alert alert-success'; resultEl.textContent = 'Record added!'; resultEl.classList.remove('hidden');
+        loadDashboard();
+        document.getElementById('add-steps').value = '';
+        document.getElementById('add-hydration').value = '';
+        document.getElementById('add-sleep').value = '';
+        document.getElementById('add-notes').value = '';
+        setTimeout(() => resultEl.classList.add('hidden'), 3000);
+      } catch (err) { resultEl.className = 'alert alert-error'; resultEl.textContent = err.message; resultEl.classList.remove('hidden'); }
+    }
+
+    async function handleGenerateInsight() {
+      try {
+        const result = await api.requestWellnessInsight('How was my week?');
+        document.getElementById('insight-text').textContent = result.insight;
+        document.getElementById('insight-disclaimer').textContent = result.disclaimer;
+        document.getElementById('insight-records-count').textContent = result.basedOnRecords;
+        if (result.weeklyStats) {
+          const s = result.weeklyStats;
+          document.getElementById('insight-stats').innerHTML = `
+            <div class="stats-grid">
+              <div class="stat-card"><div class="stat-value">${s.averageSteps.toLocaleString()}</div><div class="stat-label">Avg Steps</div></div>
+              <div class="stat-card"><div class="stat-value">${s.averageHydration}L</div><div class="stat-label">Avg Hydration</div></div>
+              <div class="stat-card"><div class="stat-value">${s.averageSleep}h</div><div class="stat-label">Avg Sleep</div></div>
+              <div class="stat-card"><div class="stat-value">${s.moodTrend}</div><div class="stat-label">Mood Trend</div></div>
+              <div class="stat-card"><div class="stat-value">${s.activityTrend}</div><div class="stat-label">Activity Trend</div></div>
+            </div>
+          `;
+        }
+        document.getElementById('insight-result').classList.remove('hidden');
+      } catch (err) { alert('Error: ' + err.message); }
+    }
+
+    async function init() {
+      try { const { user } = await api.getCurrentUser(); if (user) { currentUser = user; showApp(); } } catch (e) {}
+    }
+    init();
+  </script>
+</body>
+</html>
