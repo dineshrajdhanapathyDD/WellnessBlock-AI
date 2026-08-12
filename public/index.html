@@ -155,7 +155,14 @@
 
   <script>
     let currentUser = null;
+    let authToken = null;
     const API_BASE = '/api';
+
+    function authHeaders() {
+      const h = { 'Content-Type': 'application/json' };
+      if (authToken) h['Authorization'] = `Bearer ${authToken}`;
+      return h;
+    }
 
     const api = {
       async signIn(email, password) {
@@ -163,25 +170,25 @@
         return res.json();
       },
       async signOut() {
-        const res = await fetch(`${API_BASE}/auth/signout`, { method: 'POST', credentials: 'include' });
+        const res = await fetch(`${API_BASE}/auth/signout`, { method: 'POST', headers: authHeaders(), credentials: 'include' });
         return res.json();
       },
       async getCurrentUser() {
-        const res = await fetch(`${API_BASE}/auth/me`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/auth/me`, { headers: authHeaders(), credentials: 'include' });
         return res.json();
       },
       async createWellnessRecord(input) {
-        const res = await fetch(`${API_BASE}/wellness`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(input) });
+        const res = await fetch(`${API_BASE}/wellness`, { method: 'POST', headers: authHeaders(), credentials: 'include', body: JSON.stringify(input) });
         if (!res.ok) { const e = await res.json(); throw new Error(e.error || `HTTP ${res.status}`); }
         return res.json();
       },
       async listWellnessRecords() {
-        const res = await fetch(`${API_BASE}/wellness`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/wellness`, { headers: authHeaders(), credentials: 'include' });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       },
       async requestWellnessInsight(question) {
-        const res = await fetch(`${API_BASE}/insight`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ question }) });
+        const res = await fetch(`${API_BASE}/insight`, { method: 'POST', headers: authHeaders(), credentials: 'include', body: JSON.stringify({ question }) });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       },
@@ -192,13 +199,20 @@
       const password = document.getElementById('login-password').value;
       const errorEl = document.getElementById('login-error');
       const result = await api.signIn(email, password);
-      if (result.success) { currentUser = result.user; errorEl.classList.add('hidden'); showApp(); }
+      if (result.success) {
+        currentUser = result.user;
+        if (result.token) { authToken = result.token; localStorage.setItem('authToken', authToken); }
+        errorEl.classList.add('hidden');
+        showApp();
+      }
       else { errorEl.textContent = result.error; errorEl.classList.remove('hidden'); }
     }
 
     async function handleSignOut() {
       await api.signOut();
       currentUser = null;
+      authToken = null;
+      localStorage.removeItem('authToken');
       document.getElementById('app-view').classList.add('hidden');
       document.getElementById('login-view').classList.remove('hidden');
     }
@@ -292,7 +306,12 @@
     }
 
     async function init() {
-      try { const { user } = await api.getCurrentUser(); if (user) { currentUser = user; showApp(); } } catch (e) {}
+      try {
+        authToken = localStorage.getItem('authToken') || null;
+        const { user } = await api.getCurrentUser();
+        if (user) { currentUser = user; showApp(); }
+        else { authToken = null; localStorage.removeItem('authToken'); }
+      } catch (e) { authToken = null; localStorage.removeItem('authToken'); }
     }
     init();
   </script>

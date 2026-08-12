@@ -11,7 +11,9 @@ import { blockRegistry } from '../core/registry';
 import * as fs from 'fs';
 import * as path from 'path';
 
-const DATA_DIR = path.join(process.cwd(), '.data');
+const DATA_DIR = process.env.AWS_LAMBDA_FUNCTION_NAME
+  ? path.join('/tmp', '.data')
+  : path.join(process.cwd(), '.data');
 
 export class DataBlockImpl extends Block {
   readonly definition: BlockDefinition = {

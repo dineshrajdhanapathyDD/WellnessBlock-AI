@@ -52,6 +52,7 @@ app.post('/api/auth/signin', (req, res) => {
       // Store session token in express session
       const token = authBlock.createSessionToken(result.user.id);
       (req.session as any).authToken = token;
+      return res.json({ ...result, token });
     }
     return res.json(result);
   } catch (err: any) {
@@ -69,7 +70,11 @@ app.post('/api/auth/signout', (req, res) => {
 });
 
 app.get('/api/auth/me', (req, res) => {
-  const token = (req.session as any)?.authToken;
+  let token = (req.session as any)?.authToken;
+  if (!token) {
+    const auth = req.headers.authorization;
+    if (auth && auth.startsWith('Bearer ')) token = auth.substring(7);
+  }
   if (!token) {
     return res.json({ user: null });
   }
@@ -94,7 +99,14 @@ app.get('/api/auth/me', (req, res) => {
 // ─── AUTH MIDDLEWARE ────────────────────────────────────────────────────────────
 
 function requireAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
-  const token = (req.session as any)?.authToken;
+  // Support both session-based (local) and Bearer token (Lambda/Amplify)
+  let token = (req.session as any)?.authToken;
+  if (!token) {
+    const auth = req.headers.authorization;
+    if (auth && auth.startsWith('Bearer ')) {
+      token = auth.substring(7);
+    }
+  }
   try {
     const authSession = authBlock.requireAuth(token);
     (req as any).userId = authSession.userId;
