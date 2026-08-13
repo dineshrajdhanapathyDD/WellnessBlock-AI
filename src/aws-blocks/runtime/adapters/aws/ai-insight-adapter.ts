@@ -71,17 +71,35 @@ export class BedrockAiInsightAdapter implements IAiInsightBlockAdapter {
     const prompt = this.buildPrompt(stats, question);
 
     try {
-      const body = JSON.stringify({
-        anthropic_version: 'bedrock-2023-05-31',
-        max_tokens: 500,
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        system: 'You are a wellness assistant. Provide concise, encouraging observations about wellness data. Never diagnose diseases or recommend medication/treatment. Keep responses under 150 words.',
-      });
+      const isNova = this.modelId.startsWith('amazon.nova');
+
+      let body: string;
+      if (isNova) {
+        // Amazon Nova request format
+        body = JSON.stringify({
+          inferenceConfig: { maxNewTokens: 500 },
+          messages: [
+            {
+              role: 'user',
+              content: [{ text: prompt }],
+            },
+          ],
+          system: [{ text: 'You are a wellness assistant. Provide concise, encouraging observations about wellness data. Never diagnose diseases or recommend medication/treatment. Keep responses under 150 words.' }],
+        });
+      } else {
+        // Anthropic Claude format
+        body = JSON.stringify({
+          anthropic_version: 'bedrock-2023-05-31',
+          max_tokens: 500,
+          messages: [
+            {
+              role: 'user',
+              content: prompt,
+            },
+          ],
+          system: 'You are a wellness assistant. Provide concise, encouraging observations about wellness data. Never diagnose diseases or recommend medication/treatment. Keep responses under 150 words.',
+        });
+      }
 
       const command = new InvokeModelCommand({
         modelId: this.modelId,
@@ -93,7 +111,12 @@ export class BedrockAiInsightAdapter implements IAiInsightBlockAdapter {
       const response = await this.bedrockClient.send(command);
       const responseBody = JSON.parse(new TextDecoder().decode(response.body));
 
-      // Handle Claude response format
+      // Amazon Nova response format
+      if (responseBody.output?.message?.content?.[0]?.text) {
+        return responseBody.output.message.content[0].text;
+      }
+
+      // Anthropic Claude response format
       if (responseBody.content && responseBody.content[0]?.text) {
         return responseBody.content[0].text;
       }

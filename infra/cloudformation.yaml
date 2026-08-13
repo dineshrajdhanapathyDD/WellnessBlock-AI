@@ -12,8 +12,8 @@ Parameters:
   
   BedrockModelId:
     Type: String
-    Default: anthropic.claude-3-haiku-20240307-v1:0
-    Description: Amazon Bedrock model ID for AI insights
+    Default: amazon.nova-lite-v1:0
+    Description: Amazon Bedrock foundation model ID for AI insights (Amazon Nova)
 
 Resources:
   # ─── AuthBlock -> Amazon Cognito ────────────────────────────────────────────

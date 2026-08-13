@@ -49,7 +49,7 @@ export function loadRuntimeConfig(): RuntimeConfig {
         tableName: getEnv('DYNAMODB_TABLE_NAME', 'WellnessRecords'),
       },
       bedrock: {
-        modelId: getEnv('BEDROCK_MODEL_ID', 'anthropic.claude-3-haiku-20240307-v1:0'),
+        modelId: getEnv('BEDROCK_MODEL_ID', 'amazon.nova-lite-v1:0'),
       },
       apiGateway: {
         url: getEnv('API_URL', 'http://localhost:3000'),
