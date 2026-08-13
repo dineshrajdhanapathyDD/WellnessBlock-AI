@@ -4,6 +4,9 @@ A wellness tracking application built with a **Block-based architecture** that r
 
 ## Architecture
 
+<img width="1202" height="571" alt="wellness AI drawio" src="https://github.com/user-attachments/assets/3028a4cf-2974-4acc-9fe9-06c4cb2da69e" />
+
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                     Frontend (Browser)                       │
